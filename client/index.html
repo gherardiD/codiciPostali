@@ -1,13 +1,15 @@
-// create 4 buttons for crud operations
+<!DOCTYPE html>
 <html>
-    <head>
-        <title>Client</title>
-    </head>
-    <body>
-        <button id="create">Create</button>
-        <button id="read">Read</button>
-        <button id="update">Update</button>
-        <button id="delete">Delete</button>
-    </body>
+<head>
+    <title>Client</title>
+</head>
+<body>
+    <button id="create" onclick="createData()">Create</button>
+    <button id="read" onclick="getData()">Read</button>
+    <button id="update" onclick="updateData()">Update</button>
+    <button id="delete" onclick="deleteData()">Delete</button>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fetch/3.0.0/fetch.min.js"></script>
     <script src="client.js"></script>
+</body>
 </html>
