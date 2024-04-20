@@ -1,102 +1,88 @@
 <?php
-
 require 'connessione.php';
 
-// Elabora l'header
 $metodo = $_SERVER["REQUEST_METHOD"];
 
-// Legge il tipo di contenuto inviato dal client
-$ct = $_SERVER["CONTENT_TYPE"];
-$type = explode("/", $ct);
+if ($metodo === "POST") {
+    $data = json_decode(file_get_contents("php://input"), true);
+    
+    $name = $data["name"];
+    $cap = $data["cap"];
 
-// Legge il tipo di contenuto di ritorno richiesto dal client
-$retct = $_SERVER["HTTP_ACCEPT"];
-$ret = explode("/", $retct);
-
-// Risposta di default
-$response = array();
-
-if ($metodo == "GET"){
-    $query = "SELECT * FROM cap";
+    $query = "INSERT INTO cap (paese, cap) VALUES ('$name', '$cap')";
     $result = $connessione->query($query);
-    $rows = array();
-    while($row = $result->fetch_assoc()) {
-        $rows[] = $row;
-    }
-    $response = $rows;
-}
-elseif ($metodo == "POST"){
-    // Recupera i dati dall'header
-    $body = file_get_contents('php://input');
-    
-    // Converte in array associativo
-    if ($type[1] == "json"){
-        $data = json_decode($body, true);
-    }
-    elseif ($type[1] == "xml"){
-        $xml = simplexml_load_string($body);
-        $json = json_encode($xml);
-        $data = json_decode($json, true);
-    }
-    
-    // Elabora i dati o interagisce con il database
-    $data["valore"] += 2000;
-    
-    $response = $data;
-}
-elseif ($metodo == "PUT"){
-    // Recupera l'ID dall'URL
-    $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-    $uri = explode('/', $uri);
-    $id = $uri[count($uri) - 1];
 
-    // Recupera i dati dall'header
-    $body = file_get_contents('php://input');
-    
-    // Converte in array associativo
-    if ($type[1] == "json"){
-        $data = json_decode($body, true);
-    }
-    elseif ($type[1] == "xml"){
-        $xml = simplexml_load_string($body);
-        $json = json_encode($xml);
-        $data = json_decode($json, true);
-    }
-    
-    // Elabora i dati o interagisce con il database per l'aggiornamento
-    // Supponiamo che $data contenga i nuovi dati per l'aggiornamento
-    
-    // Aggiornamento dei dati nel database (sostituisci questo con la tua logica)
     $response = array(
-        'id' => $id,
-        'updated_data' => $data
+        "message" => "Nuovi dati creati",
+        "data" => $data
     );
-}
-elseif ($metodo == "DELETE"){
-    // Recupera l'ID dall'URL
-    $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-    $uri = explode('/', $uri);
-    $id = $uri[count($uri) - 1];
 
-    // Elabora i dati o interagisce con il database per l'eliminazione
-    // Supponiamo che tu abbia una funzione per eliminare i dati dal database
-    // Esempio:
-    // deleteDataFromDatabase($id);
+    header("Content-Type: application/json");
+
+    echo json_encode($response);
+} 
+elseif ($metodo === "DELETE") {
+    $id = $_SERVER['REQUEST_URI'];
+
+    $query = "DELETE FROM cap WHERE id = '$id'";
+    $result = $connessione->query($query);
+
+    $response = array(
+        "message" => "Dati eliminati",
+        "id" => $id
+    );
+
+    header("Content-Type: application/json");
+
+    echo json_encode($response);
+} else if ($metodo === "GET") {
+    $query = "SELECT * FROM cap;";
+    $result = $connessione->query($query);
     
-    // Codice di risposta
-    http_response_code(204); // Nessun contenuto
-    exit();
-}
+    $data = array();
+    while($row = $result->fetch_assoc()) {
+        $data[] = $row;
+    }
 
-// Settaggio dei campi dell'header
-header("Content-Type: ".$retct);    
+    $response = array(
+        "message" => "Dati recuperati",
+        "data" => $data 
+    );
 
-// Restituisce i dati convertiti nel formato richiesto
-if ($ret[1] == "json"){
+    header("Content-Type: application/json");
+
+    echo json_encode($response);
+} elseif ($metodo === "PUT") {
+    $id = $_SERVER['REQUEST_URI'];
+
+    $data = json_decode(file_get_contents("php://input"), true);
+    
+
+    
+    $name = $data["name"];
+    $cap = $data["cap"];
+
+    $query = "UPDATE cap SET paese = '$name', cap = '$cap' WHERE id = '$id'";
+    $result = $connessione->query($query);
+
+    $response = array(
+        "message" => "Dati aggiornati",
+        "data" => $data
+    );
+
+    header("Content-Type: application/json");
+
+    echo json_encode($response);
+} 
+else {
+    $response = array(
+        "error" => "Metodo non supportato"
+    );
+
+    header("Content-Type: application/json");
+
+    http_response_code(405);
     echo json_encode($response);
 }
-elseif ($ret[1] == "xml"){
-    $xml = new SimpleXMLElement('<root/>');
-    array_walk_recursive($response, array ($xml, 'addChild'));    
-    echo $xml->asXML();
-}
+
+?>

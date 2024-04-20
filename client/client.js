@@ -1,5 +1,5 @@
 // URL dell'API
-const apiUrl = './../server/api.php';
+const apiUrl = 'http://127.0.0.1/5ia/codiciPostali/server';
 
 // Funzione per creare un nuovo elemento
 async function createData() {
